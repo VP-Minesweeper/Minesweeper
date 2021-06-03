@@ -27,7 +27,7 @@ public class SingleBlockScript : MonoBehaviour
     
     void Start()
     {
-        
+           
         myBoardScript = FindObjectOfType<BoardScript>();
         
     }
@@ -52,6 +52,57 @@ public class SingleBlockScript : MonoBehaviour
             
             calculateNumberOfBombs();
             if(numberOfBombsAround == numberOfFlagsAround) {
+                Debug.Log("should clear here");
+                for (int xoff = -1; xoff <= 1; xoff++)
+                {
+                    for (int yoff = -1; yoff <= 1; yoff++)
+                    {
+                        int x = this.i + xoff;
+                        int y = this.j + yoff;
+                        if (xoff == 0 && yoff == 0)
+                            continue;
+                        if (x > -1 && x < myBoardScript.width && y > -1 && y < myBoardScript.height)
+                        {
+                            SingleBlockScript tempBlock = myBoardScript.myBoard[x, y];
+
+
+                            if (tempBlock.hasBomb && !tempBlock.isFlagged)
+                            {
+
+                                Renderer temp = tempBlock.GetComponentInChildren<Renderer>();
+                                temp.material.color = Color.black;
+                                // end game panel
+
+                                myBoardScript.isGameOver = true;
+                                myBoardScript.panel.SetActive(true);
+                                myBoardScript.endText.text = "Game Over!";
+
+
+                            }
+                            else if (!tempBlock.isFlagged)
+                            {
+                                if (tempBlock.numberOfBombsAround == 0)
+                                    tempBlock.floodFill();
+                                Debug.Log(x + ":" + y);
+                                Debug.Log("hasip");
+                                if (!tempBlock.hasBeenOpened)
+                                    myBoardScript.numberOfOppenedBlocks++;
+                                Destroy(myBoardScript.myBoard[x, y].cube);
+                            }
+
+                            if (myBoardScript.numberOfOppenedBlocks + myBoardScript.bombs == myBoardScript.width * myBoardScript.height)
+                            {
+                                // Game won panel
+
+                                myBoardScript.isGameOver = true;
+                                myBoardScript.panel.SetActive(true);
+                                myBoardScript.endText.text = "You have Won!";
+                            }
+                            tempBlock.hasBeenOpened = true;
+
+                        }
+                    }
+                }
                 Debug.Log("should clear here");
                 // clear when clicking already oppened block FEATURE
             }

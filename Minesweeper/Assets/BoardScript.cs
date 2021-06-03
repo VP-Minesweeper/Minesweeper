@@ -41,7 +41,7 @@ public class BoardScript : MonoBehaviour {
         }
         if(Input.GetMouseButtonUp(1) && !isGameOver) {
             SingleBlockScript rig = getRayCastHit();
-            if(rig!=null) {
+            if(rig!=null && !rig.hasBeenOpened) {
                 rig.setFlag();
             }
         }
