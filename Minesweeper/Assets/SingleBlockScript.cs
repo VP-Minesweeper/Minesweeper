@@ -22,12 +22,12 @@ public class SingleBlockScript : MonoBehaviour
     private bool isFlagged = false;
 
 
+
     
 
     
     void Start()
     {
-           
         myBoardScript = FindObjectOfType<BoardScript>();
         
     }
@@ -41,7 +41,7 @@ public class SingleBlockScript : MonoBehaviour
     public void setFlag() {
         isFlagged = !isFlagged;
         if(isFlagged) {
-            GetComponentInChildren<Renderer>().material.color = Color.red;
+            GetComponentInChildren<Renderer>().material.color = new Color32(25, 255, 25, 255); // Green
         } else {
             GetComponentInChildren<Renderer>().material.color = Color.gray;
 
@@ -52,7 +52,6 @@ public class SingleBlockScript : MonoBehaviour
             
             calculateNumberOfBombs();
             if(numberOfBombsAround == numberOfFlagsAround) {
-                Debug.Log("should clear here");
                 for (int xoff = -1; xoff <= 1; xoff++)
                 {
                     for (int yoff = -1; yoff <= 1; yoff++)
@@ -70,12 +69,13 @@ public class SingleBlockScript : MonoBehaviour
                             {
 
                                 Renderer temp = tempBlock.GetComponentInChildren<Renderer>();
-                                temp.material.color = Color.black;
+                                temp.material.color = Color.red;
                                 // end game panel
 
                                 myBoardScript.isGameOver = true;
                                 myBoardScript.panel.SetActive(true);
                                 myBoardScript.endText.text = "Game Over!";
+                                myBoardScript.stopWatch.stopStopWatch();
 
 
                             }
@@ -83,8 +83,6 @@ public class SingleBlockScript : MonoBehaviour
                             {
                                 if (tempBlock.numberOfBombsAround == 0)
                                     tempBlock.floodFill();
-                                Debug.Log(x + ":" + y);
-                                Debug.Log("hasip");
                                 if (!tempBlock.hasBeenOpened)
                                     myBoardScript.numberOfOppenedBlocks++;
                                 Destroy(myBoardScript.myBoard[x, y].cube);
@@ -96,14 +94,14 @@ public class SingleBlockScript : MonoBehaviour
 
                                 myBoardScript.isGameOver = true;
                                 myBoardScript.panel.SetActive(true);
-                                myBoardScript.endText.text = "You have Won!";
+                                myBoardScript.stopWatch.stopStopWatch();
+
                             }
                             tempBlock.hasBeenOpened = true;
 
                         }
                     }
                 }
-                Debug.Log("should clear here");
                 // clear when clicking already oppened block FEATURE
             }
         } else {
@@ -113,14 +111,13 @@ public class SingleBlockScript : MonoBehaviour
         hasBeenOpened = true;
         if (hasBomb) {
             Renderer temp = GetComponentInChildren<Renderer>();
-            temp.material.color = Color.black;
+            temp.material.color = Color.red;
             // end game panel
 
             myBoardScript.isGameOver = true;
             myBoardScript.panel.SetActive(true);
             myBoardScript.endText.text = "Game Over!";
-
-
+            myBoardScript.stopWatch.stopStopWatch();
         }
         else if (!hasBomb) {
             if (this.numberOfBombsAround == 0)
@@ -133,12 +130,15 @@ public class SingleBlockScript : MonoBehaviour
 
             myBoardScript.isGameOver = true;
             myBoardScript.panel.SetActive(true);
-            myBoardScript.endText.text = "You have Won!";
+            myBoardScript.endText.text = "You WIN!";
+            myBoardScript.stopWatch.stopStopWatch();
+
         }
-        
+
     }
     public void calculateNumberOfBombs() {
         int bombcounter = 0;
+        numberOfFlagsAround = 0;
         for (int xoff = -1; xoff <= 1; xoff++) {
             for (int yoff = -1; yoff <= 1; yoff++) {
                 int x = this.i + xoff;

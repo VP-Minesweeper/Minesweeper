@@ -14,7 +14,26 @@ public class BoardScript : MonoBehaviour {
     public GameObject panel;
     public Text endText;
     public bool isGameOver = false;
+
+    public StopwatchScript stopWatch;
     void Start() {
+
+        if(GameManagerScript.instance.gameMode.Equals("easy")) {
+            height = 10;
+            width = 10;
+            bombs = 10;
+        } else if(GameManagerScript.instance.gameMode.Equals("medium")) {
+            height = 10;
+            width = 10;
+            bombs = 15;
+        } else if(GameManagerScript.instance.gameMode.Equals("hard")) {
+            height = 10;
+            width = 20;
+            bombs = 32;
+            this.gameObject.transform.position = new Vector3(this.transform.position.x-5, this.transform.position.y, this.transform.position.z);
+
+        }
+
         myBoard = new SingleBlockScript[width, height];
         for (int i = 0; i < width; i++) {
             for (int j = 0; j < height; j++) {
@@ -24,14 +43,23 @@ public class BoardScript : MonoBehaviour {
             }
         }
     }
-
-    // Update is called once per frame
     void Update() {
         if (Input.GetMouseButtonUp(0) && !isGameOver) {
             SingleBlockScript rig = getRayCastHit();
-            if(rig!=null) {
-                if (isFirstClick) {
-                    rig.isFirstCube = true;
+            if (rig != null) {
+                if (isFirstClick) { // Its the first click player choses on board
+                    stopWatch.startStopWatch();
+                    for (int xoff = -1; xoff <= 1; xoff++) {
+                        for (int yoff = -1; yoff <= 1; yoff++) {
+                            int x = rig.i + xoff;
+                            int y = rig.j + yoff;
+                            if (x > -1 && x < width && y > -1 && y < height) {
+                                SingleBlockScript neighbour = myBoard[x, y];
+                                neighbour.isFirstCube = true;
+                            }
+                        }
+                    }
+                    //rig.isFirstCube = true;
                     firstClickRandomize();
                     isFirstClick = false;
                 }
@@ -39,9 +67,9 @@ public class BoardScript : MonoBehaviour {
             }
 
         }
-        if(Input.GetMouseButtonUp(1) && !isGameOver) {
+        if (Input.GetMouseButtonUp(1) && !isGameOver) {
             SingleBlockScript rig = getRayCastHit();
-            if(rig!=null && !rig.hasBeenOpened) {
+            if (rig != null && !rig.hasBeenOpened) {
                 rig.setFlag();
             }
         }
