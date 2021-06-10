@@ -5,26 +5,21 @@ using UnityEngine.UI;
 
 public class SingleBlockScript : MonoBehaviour
 {
-    // Start is called before the first frame update
+    // SingleBlockScript is the backbone of this project and is used together with BoardScript as the Core mechanics of the game
     public GameObject cube;
     
-    public int i;
+    public int i; // used to save position of this block form the BoardScript.myBoard Matrix
     public int j;
 
     public int numberOfBombsAround = 0;
-    public int numberOfFlagsAround = 0;
+    public int numberOfFlagsAround = 0; // Its used for the mechanic of clearing blocks around an already oppened block(explanation later)
     public bool hasBomb = false;
     public bool hasBeenOpened = false;
-    public bool isFirstCube = false;
+    public bool isFirstCube = false; // If its first cube it will always be clear of bombs
     public Text bombsText;
 
     private BoardScript myBoardScript;
-    private bool isFlagged = false;
-
-
-
-    
-
+    private bool isFlagged = false; // holds info if block is "flagged" by player (green colored block). Block is "flagged" with right Click.
     
     void Start()
     {
@@ -38,7 +33,7 @@ public class SingleBlockScript : MonoBehaviour
         
     }
 
-    public void setFlag() {
+    public void setFlag() { // marking block as "flagged"
         isFlagged = !isFlagged;
         if(isFlagged) {
             GetComponentInChildren<Renderer>().material.color = new Color32(25, 255, 25, 255); // Green
@@ -47,11 +42,11 @@ public class SingleBlockScript : MonoBehaviour
 
         }
     }
-    public void openCube() {
-        if(hasBeenOpened) {
-            
-            calculateNumberOfBombs();
-            if(numberOfBombsAround == numberOfFlagsAround) {
+    public void openCube() { // when player clicks the block all the logic is handled here
+
+        if(hasBeenOpened) { // checks if clicked block has already been opened ie: handles clicking on a number on the board (CORE MECHANIC)
+            calculateNumberOfBombs(); // gets number of bombs around already opened block
+            if(numberOfBombsAround == numberOfFlagsAround) { // if number of flags around clicked block is equal to number of bombs around that block we "Reveal" 9 blocks around it
                 for (int xoff = -1; xoff <= 1; xoff++)
                 {
                     for (int yoff = -1; yoff <= 1; yoff++)
@@ -65,7 +60,7 @@ public class SingleBlockScript : MonoBehaviour
                             SingleBlockScript tempBlock = myBoardScript.myBoard[x, y];
 
 
-                            if (tempBlock.hasBomb && !tempBlock.isFlagged)
+                            if (tempBlock.hasBomb && !tempBlock.isFlagged) // there is a bomb that wasnt flagged by player(he made a mistake) therefore Game over
                             {
 
                                 Renderer temp = tempBlock.GetComponentInChildren<Renderer>();
@@ -75,26 +70,26 @@ public class SingleBlockScript : MonoBehaviour
                                 myBoardScript.isGameOver = true;
                                 myBoardScript.panel.SetActive(true);
                                 myBoardScript.endText.text = "Game Over!";
-                                myBoardScript.stopWatch.stopStopWatch();
+                                myBoardScript.stopWatch.stopStopWatch(); //stoping stopwatch, this time wont be counted of course
 
 
                             }
-                            else if (!tempBlock.isFlagged)
+                            else if (!tempBlock.isFlagged) // if block isnt flag open that block
                             {
                                 if (tempBlock.numberOfBombsAround == 0)
                                     tempBlock.floodFill();
                                 if (!tempBlock.hasBeenOpened)
                                     myBoardScript.numberOfOppenedBlocks++;
-                                Destroy(myBoardScript.myBoard[x, y].cube);
+                                Destroy(myBoardScript.myBoard[x, y].cube); // this opens the block and reveals the number under it
                             }
 
                             if (myBoardScript.numberOfOppenedBlocks + myBoardScript.bombs == myBoardScript.width * myBoardScript.height)
-                            {
+                            { // if number of opened blocks + bombs on the board is equal to all the blocks in the board Game Has been WON!
                                 // Game won panel
 
                                 myBoardScript.isGameOver = true;
-                                myBoardScript.panel.SetActive(true);
-                                myBoardScript.stopWatch.stopStopWatch();
+                                myBoardScript.panel.SetActive(true); // endScreen panel enabled
+                                myBoardScript.stopWatch.stopStopWatch(); // stoping stopWatch
 
                             }
                             tempBlock.hasBeenOpened = true;
@@ -102,14 +97,14 @@ public class SingleBlockScript : MonoBehaviour
                         }
                     }
                 }
-                // clear when clicking already oppened block FEATURE
             }
         } else {
             myBoardScript.numberOfOppenedBlocks++;
 
         }
+
         hasBeenOpened = true;
-        if (hasBomb) {
+        if (hasBomb) { // player clicked direcly to a bomb therefore Game Over
             Renderer temp = GetComponentInChildren<Renderer>();
             temp.material.color = Color.red;
             // end game panel
@@ -120,23 +115,21 @@ public class SingleBlockScript : MonoBehaviour
             myBoardScript.stopWatch.stopStopWatch();
         }
         else if (!hasBomb) {
-            if (this.numberOfBombsAround == 0)
-                floodFill();
-            Destroy(cube);
+            if (this.numberOfBombsAround == 0) // if clicked block has No bombs around we must execute "FloodFill" Algorithm
+                floodFill(); 
+            Destroy(cube); // revelaing number in block
         }
 
         if(myBoardScript.numberOfOppenedBlocks+myBoardScript.bombs == myBoardScript.width*myBoardScript.height) {
-            // Game won panel
-
+            // Game Has been Won!
             myBoardScript.isGameOver = true;
             myBoardScript.panel.SetActive(true);
             myBoardScript.endText.text = "You WIN!";
             myBoardScript.stopWatch.stopStopWatch();
 
         }
-
     }
-    public void calculateNumberOfBombs() {
+    public void calculateNumberOfBombs() { // calculates number of bombs around this SingleBlockScript (Used by BoardScipt when setting up the board)
         int bombcounter = 0;
         numberOfFlagsAround = 0;
         for (int xoff = -1; xoff <= 1; xoff++) {
@@ -155,12 +148,15 @@ public class SingleBlockScript : MonoBehaviour
         this.numberOfBombsAround = bombcounter;
         updateText();
     }
-    public void updateText() {
+    public void updateText() { 
         if(numberOfBombsAround !=0)
             bombsText.text = numberOfBombsAround.ToString();
     }
     private void floodFill() {
-        for(int xoff=-1; xoff<=1; xoff++) {
+        // "FloodFill" Algorithm ( Found form Wikipedia). 
+        // Works recursevly together with openBlock() function to open all neighboring blocks that dont have bombs around
+        // Removes Tedius task of unnecessarily clearing obvious blocks and Enhances gameplay.
+        for (int xoff=-1; xoff<=1; xoff++) {
             for(int yoff=-1; yoff<=1; yoff++) {
                 int x = this.i + xoff;
                 int y = this.j + yoff;

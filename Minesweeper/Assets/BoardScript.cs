@@ -2,22 +2,20 @@ using UnityEngine;
 using UnityEngine.UI;
 
 public class BoardScript : MonoBehaviour {
-    // Start is called before the first frame update
-    public SingleBlockScript singleBlock;
-    public int height;
-    public int width;
-    public int bombs;
-    public SingleBlockScript[,] myBoard;
-    public bool isFirstClick = true;
-    public int numberOfOppenedBlocks = 0;
+    public SingleBlockScript singleBlock; // building block of the game used to instantiate Blocks across the board
+    public int height; // height of the board
+    public int width; // width of the board
+    public int bombs; // number of bombs(Mines) in the board
+    public SingleBlockScript[,] myBoard; // the matrix that holds all the blocks of the board
+    public bool isFirstClick = true; // flag to account for the first click on the board
+    public int numberOfOppenedBlocks = 0; // number of oppened blocks without mines in them
 
-    public GameObject panel;
-    public Text endText;
-    public bool isGameOver = false;
+    public GameObject panel; // gameOver pannel used by SingleBlockScript to show endscreen after finishing
+    public Text endText; // Could be Game over or You WIN depending on the outcome
+    public bool isGameOver = false; // Flag to make sure player cant click on board after Game over
 
-    public StopwatchScript stopWatch;
-    void Start() {
-
+    public StopwatchScript stopWatch; // stopWatch of the game
+    void Start() { // setting up the board according to what player pressed in Main Menu Scene
         if(GameManagerScript.instance.gameMode.Equals("easy")) {
             height = 10;
             width = 10;
@@ -47,10 +45,10 @@ public class BoardScript : MonoBehaviour {
         if (Input.GetMouseButtonUp(0) && !isGameOver) {
             SingleBlockScript rig = getRayCastHit();
             if (rig != null) {
-                if (isFirstClick) { // Its the first click player choses on board
-                    stopWatch.startStopWatch();
-                    for (int xoff = -1; xoff <= 1; xoff++) {
-                        for (int yoff = -1; yoff <= 1; yoff++) {
+                if (isFirstClick) { // On first click the board is generated randomly and 9 blocks around the clicked block are always clear of bombs
+                    stopWatch.startStopWatch(); //starting stopwatch
+                    for (int xoff = -1; xoff <= 1; xoff++) { // making sure 9 blocks around clicked block are always clear ( Makes for more enjoyable game and you cant lose on first click)
+                        for (int yoff = -1; yoff <= 1; yoff++) { 
                             int x = rig.i + xoff;
                             int y = rig.j + yoff;
                             if (x > -1 && x < width && y > -1 && y < height) {
@@ -60,14 +58,14 @@ public class BoardScript : MonoBehaviour {
                         }
                     }
                     //rig.isFirstCube = true;
-                    firstClickRandomize();
+                    firstClickRandomize(); // randomly selecting which blocks will have bombs in them
                     isFirstClick = false;
                 }
                 rig.openCube();
             }
 
         }
-        if (Input.GetMouseButtonUp(1) && !isGameOver) {
+        if (Input.GetMouseButtonUp(1) && !isGameOver) { // with right click we "Flag" a block ( CORE MECHANIC)
             SingleBlockScript rig = getRayCastHit();
             if (rig != null && !rig.hasBeenOpened) {
                 rig.setFlag();
@@ -75,7 +73,7 @@ public class BoardScript : MonoBehaviour {
         }
     }
 
-    public SingleBlockScript getRayCastHit() {
+    public SingleBlockScript getRayCastHit() { // returns the clicked block
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         RaycastHit hit;
         if (Physics.Raycast(ray, out hit)) {
@@ -87,8 +85,8 @@ public class BoardScript : MonoBehaviour {
 
     }
 
-    public void firstClickRandomize() {
-        for (int tempCounter = 0; tempCounter < bombs; tempCounter++) {
+    public void firstClickRandomize() { // randomly puts bombs on blocks that are not "IsFirstCube" by the ammount of bombs according to difficulty
+        for (int tempCounter = 0; tempCounter < bombs; tempCounter++) { // Bombs set up
             int i = Random.Range(0, width - 1);
             int j = Random.Range(0, height - 1);
 
@@ -101,7 +99,7 @@ public class BoardScript : MonoBehaviour {
 
         }
 
-        for (int i = 0; i < width; i++) {
+        for (int i = 0; i < width; i++) { // Calculates the numbers used to find the bombs during gameplay ( CORE MECHANIC )
 
             for (int j = 0; j < height; j++) {
                 myBoard[i, j].calculateNumberOfBombs();

@@ -7,6 +7,9 @@ using UnityEngine.UI;
 
 public class playButtonScript : MonoBehaviour
 {
+    // Handles all button click events in Main Menu Scene
+    // Also Handles the showing of Highscores in every difficulty level
+
     public GameObject easyBtn;
     public GameObject mediumBtn;
     public GameObject hardBtn;
@@ -18,6 +21,7 @@ public class playButtonScript : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        // PlayerPrefs are a storage solution from Unity to easily save primitive data types
         if (PlayerPrefs.HasKey("easyHighscore")) {
 
             easyHighscoreText.text = "Best time:\n";
@@ -44,7 +48,6 @@ public class playButtonScript : MonoBehaviour
             hardHighscoreText.text = "";
 
 ;
-        //easyBtn.SetActive(false);
     }
 
     // Update is called once per frame
@@ -76,6 +79,9 @@ public class playButtonScript : MonoBehaviour
     }
     public void quitBtnClick() {
         Application.Quit();
+    }
+    public void clearHighscoresBtnClick() {
+        PlayerPrefs.DeleteAll();
     }
 
     
